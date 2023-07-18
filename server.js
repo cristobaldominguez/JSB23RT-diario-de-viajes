@@ -4,6 +4,9 @@ const { port } = require('./config')
 
 const app = express()
 
+app.get('/', (req, res) => {
+  res.json({ msg: 'Aleluya!' })
+})
 
 app.use((req, res, next) => {
   res.status(404)
