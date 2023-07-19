@@ -13,4 +13,8 @@ app.use((req, res, next) => {
   res.json({ error: true, msg: '404 Not Found' })
 })
 
+app.use((err, req, res, next) => {
+  res.json({ error: true, msg: err.message })
+})
+
 app.listen(port, _ => `Server running at: http://localhost:${port}`)
