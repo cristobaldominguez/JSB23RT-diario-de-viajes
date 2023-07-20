@@ -27,6 +27,18 @@ const init = async () => {
     `)
 
     await connection.query(`
+      CREATE TABLE IF NOT EXISTS entries(
+        id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(30) NOT NULL,
+        place VARCHAR(30) NOT NULL,
+        description TEXT NOT NULL,
+        userId INT UNSIGNED NOT NULL,
+        createdAt DATETIME NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id)
+      );
+    `)
+
+    await connection.query(`
         INSERT INTO users (email, username, password, registration_code, active, role)
           VALUES('user@example.com', 'usuario01', '123123', '001', 1, 'admin'),
                 ('user2@example.com', 'usuario02', '123123', '001', 1, 'normal'),

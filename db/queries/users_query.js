@@ -22,7 +22,7 @@ async function getUser({ id }) {
       `SELECT * FROM users WHERE id = ?`,
       [ id ]
     )
-    return user
+    return user[0]
 
   } catch (error) {
     
