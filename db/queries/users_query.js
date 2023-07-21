@@ -1,5 +1,8 @@
 const getPool = require('../pool.js')
 
+// Errors
+const AuthError = require('../../errors/auth_error.js')
+
 async function getUsers() {
   let connection
 
@@ -10,6 +13,26 @@ async function getUsers() {
 
   } catch (error) {
     
+  }
+}
+
+async function getUserBy(obj) {
+  const query_str = Object.entries(obj).map(arr => `${arr[0]} = '${arr[1]}'`).join(', ')
+  let connection
+
+  console.log({ query_str })
+
+  try {
+    connection = await getPool()
+    const [user] = await connection.query(
+      `SELECT * FROM users WHERE ${query_str}`
+    )
+    return user[0]
+
+  } catch (error) {
+
+  } finally {
+    if (connection) connection.release()
   }
 }
 
@@ -29,7 +52,55 @@ async function getUser({ id }) {
   }
 }
 
+async function createUser({ email, username, password, registrationCode }) {
+  let connection
+
+  try {
+    connection = await getPool()
+
+    // Comprobamos si el email está repetido.
+    let [users] = await connection.query(
+      `SELECT id FROM users WHERE email = ?`,
+      [email]
+    )
+
+    // Si el array de usuarios tiene más de 0 usuarios quiere decir que el email está repetido.
+    if (users.length > 0) {
+      throw new AuthError({ message: 'Ya existe un usuario con ese email' })
+    }
+
+    // Comprobamos si el nombre de usuario está repetido.
+    [users] = await connection.query(
+      `SELECT id FROM users WHERE username = ?`,
+      [username]
+    )
+
+    // Si el array de usuarios tiene más de 0 usuarios quiere decir que el nombre de usuario está repetido.
+    if (users.length > 0) {
+      throw new AuthError({ message: 'Nombre de usuario no disponible' })
+    }
+
+    // Encriptamos la contraseña.
+    const hashedPass = await bcrypt.hash(password, 10)
+
+    // Insertamos el usuario en la base de datos.
+    await connection.query(
+      `INSERT INTO users (email, username, password, registration_code, createdAt) VALUES(?, ?, ?, ?, ?)`,
+      [email, username, hashedPass, registrationCode, new Date()]
+    )
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
 module.exports = {
   getUsers,
-  getUser
+  getUserBy,
+  getUser,
+  createUser,
 }

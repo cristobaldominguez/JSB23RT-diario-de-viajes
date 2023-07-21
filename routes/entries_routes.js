@@ -10,11 +10,11 @@ const userExists = require('../middlewares/user_exists.js')
 // GET /entries/
 router.get('/', entries_controller.getEntries)
 
-// GET /entries/:id
-router.get('/:id', entries_controller.getEntry)
-
 // POST /entries
 router.post('/', userExists, entries_controller.createEntry)
+
+// GET /entries/:id
+router.get('/:id', entries_controller.getEntry)
 
 // PUT /entries/:id
 router.put('/:id', entries_controller.editEntry)

@@ -45,9 +45,12 @@ async function deleteEntry(req, res) {
   res.json(entry)
 }
 
-async function editEntry(req, res) {
+async function editEntry(req, res, next) {
   const { id } = req.params
   const { title, place, description } = req.body
+
+  if (Object.keys(req.body).length < 1) 
+    throw new ValidationError({ message: 'Los campos title, place o description son obligatorios', field: 'title' })
 
   try {
     const entry = await getEntryDB({ id })
@@ -63,9 +66,8 @@ async function editEntry(req, res) {
     res.json({ savedEntry })
 
   } catch (error) {
-    
+    next(error)
   }
-  
 }
 
 module.exports = {
