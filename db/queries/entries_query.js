@@ -18,12 +18,11 @@ async function createEntry({ title, place, description, userId }) {
 
   try {
     connection = await getPool()
-    const data = await connection.query(
+    const [savedData] = await connection.query(
       `INSERT INTO entries(title, place, description, userId, createdAt) VALUES(?, ?, ?, ?, ?)`,
       [title, place, description, userId, new Date()]
     )
-    console.log(data)
-    return data[0]
+    return savedData
 
   } catch (error) {
     
@@ -38,6 +37,22 @@ async function getEntry({ id }) {
     const [ entry ] = await connection.query(
       `SELECT * FROM entries WHERE id = ?`,
       [ id ]
+    )
+    return entry[0]
+
+  } catch (error) {
+    
+  }
+}
+
+async function editEntry({ id, title, place, description, userId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+    const entry = await connection.query(
+      `UPDATE entries SET title = ?, place = ?, description = ? WHERE id = ? AND userId = ?`,
+      [ title, place, description, id, userId ]
     )
     return entry
 
@@ -67,5 +82,6 @@ module.exports = {
   getEntries,
   createEntry,
   getEntry,
+  editEntry,
   deleteEntry
 }

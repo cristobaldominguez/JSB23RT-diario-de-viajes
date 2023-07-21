@@ -16,11 +16,11 @@ router.get('/:id', entries_controller.getEntry)
 // POST /entries
 router.post('/', userExists, entries_controller.createEntry)
 
-// PUT /entries
-router.put('/', )
+// PUT /entries/:id
+router.put('/:id', entries_controller.editEntry)
 
-// PATCH /entries
-// router.patch('/', )
+// PATCH /entries/:id
+router.patch('/:id', entries_controller.editEntry)
 
 // DELETE /entries/:id
 router.delete('/:id', entries_controller.deleteEntry)

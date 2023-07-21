@@ -3,6 +3,7 @@ const {
   getEntries: getEntriesDB,
   createEntry: createEntryDB,
   getEntry: getEntryDB,
+  editEntry: editEntryDB,
   deleteEntry: deleteEntryDB
 } = require('../db/queries/entries_query.js')
 
@@ -21,8 +22,9 @@ async function createEntry(req, res, next) {
     if (!place) throw new ValidationError({ message: 'El campo place es obligatorio', field: 'place' })
     if (!description) throw new ValidationError({ message: 'El campo description es obligatorio', field: 'description' })
 
-    const entry = createEntryDB({ title, place, description, userId })
-    res.json({ entry })
+    const entry = await createEntryDB({ title, place, description, userId })
+    const savedEntry = await getEntryDB({ id: entry.insertId })
+    res.json({ savedEntry })
 
   } catch (error) {
     return next(error)
@@ -44,9 +46,25 @@ async function deleteEntry(req, res) {
 }
 
 async function editEntry(req, res) {
+  const { id } = req.params
   const { title, place, description } = req.body
 
-  
+  try {
+    const entry = await getEntryDB({ id })
+    const newEntry = {
+      ...entry,
+      title: title || entry.title,
+      place: place || entry.place,
+      description: description || entry.description
+    }
+
+    const editedEntry = await editEntryDB(newEntry)
+    const savedEntry = editedEntry && await getEntryDB({ id })
+    res.json({ savedEntry })
+
+  } catch (error) {
+    
+  }
   
 }
 
