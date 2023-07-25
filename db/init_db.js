@@ -7,9 +7,11 @@ const init = async () => {
     connection = await getPool()
 
     console.log('Borrando tablas')
+    await connection.query('DROP TABLE IF EXISTS entries')
     await connection.query('DROP TABLE IF EXISTS users')
 
     console.log('Creando tablas')
+    console.log('Creando tabla users')
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users(
         id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -18,7 +20,7 @@ const init = async () => {
         password VARCHAR(100) NOT NULL,
         avatar VARCHAR(100),
         role ENUM('admin', 'normal') DEFAULT 'normal',
-        registration_code VARCHAR(100),
+        registrationCode VARCHAR(100),
         recoveryPassCode VARCHAR(100),
         active BOOLEAN DEFAULT false,
         createdAt DATETIME NOT NULL DEFAULT NOW(),
@@ -26,6 +28,7 @@ const init = async () => {
       )
     `)
 
+    console.log('Creando tabla entries')
     await connection.query(`
       CREATE TABLE IF NOT EXISTS entries(
         id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
@@ -38,15 +41,16 @@ const init = async () => {
       );
     `)
 
-    await connection.query(`
-        INSERT INTO users (email, username, password, registration_code, active, role)
-          VALUES('user@example.com', 'usuario01', '123123', '001', 1, 'admin'),
-                ('user2@example.com', 'usuario02', '123123', '001', 1, 'normal'),
-                ('user3@example.com', 'usuario03', '123123', '001', 1, 'normal'),
-                ('user4@example.com', 'usuario04', '123123', '001', 1, 'normal');
-    `)
-
     console.log('Tablas creadas')
+
+    // // console.log('Agregando registros en tabla users')
+    // await connection.query(`
+    //     INSERT INTO users (email, username, password, registrationCode, active, role)
+    //       VALUES('user@example.com', 'usuario01', '123123', '001', 1, 'admin'),
+    //             ('user2@example.com', 'usuario02', '123123', '001', 1, 'normal'),
+    //             ('user3@example.com', 'usuario03', '123123', '001', 1, 'normal'),
+    //             ('user4@example.com', 'usuario04', '123123', '001', 1, 'normal');
+    // `)
     
   } catch (error) {
     console.error(error)

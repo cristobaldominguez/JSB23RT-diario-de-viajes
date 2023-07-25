@@ -12,7 +12,6 @@ const {
 let pool
 
 const getPool = async () => {
-  // if (pool) return 
   if (!pool) {
     pool = mysql.createPool({
       connectionLimit: 10,

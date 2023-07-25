@@ -70,7 +70,6 @@ async function deleteEntry({ id }) {
       `DELETE FROM entries WHERE id = ?`,
       [ id ]
     )
-    console.log(data)
     return data
 
   } catch (error) {
