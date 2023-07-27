@@ -2,6 +2,7 @@ const getPool = require('../pool.js')
 
 // Errors
 const AuthError = require('../../errors/auth_error.js')
+const ValidationError = require('../../errors/validation_error.js')
 
 async function getUsers() {
   let connection
@@ -80,13 +81,90 @@ async function createUser({ email, username, password, registrationCode }) {
       throw new AuthError({ message: 'Nombre de usuario no disponible' })
     }
 
-    // Encriptamos la contraseña.
-    const hashedPass = await bcrypt.hash(password, 10)
-
     // Insertamos el usuario en la base de datos.
+    const [result] = await connection.query(
+      `INSERT INTO users (email, username, password, registrationCode, createdAt) VALUES(?, ?, ?, ?, ?)`,
+      [email, username, password, registrationCode, new Date()]
+    )
+    return await getUser({ id: result.insertId })
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
+async function updateUserRegCode(regCode) {
+  let connection
+
+  try {
+    connection = await getPool()
+
+    // Intentamos localizar a un usuario con el código de registro que nos llegue.
+    const [users] = await connection.query(
+      `SELECT id FROM users WHERE registrationCode = ?`,
+      [regCode]
+    )
+
+    // Si no hay usuarios con ese código de registro lanzamos un error.
+    if (users.length < 1) throw new ValidationError({ message: 'Código no encontrado', status: 404 })
+
+    const [user] = users
+
+    // Actualizamos el usuario.
     await connection.query(
-      `INSERT INTO users (email, username, password, registration_code, createdAt) VALUES(?, ?, ?, ?, ?)`,
-      [email, username, hashedPass, registrationCode, new Date()]
+      `UPDATE users SET active = true, registrationCode = null, modifiedAt = ? WHERE id = ?`,
+      [new Date(), user.id]
+    )
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
+async function updateUserRecoverPass({ id, recoverPassCode }) {
+  let connection
+
+  try {
+    connection = await getPool()
+
+    await connection.query(
+      `UPDATE users SET recoveryPassCode = ?, modifiedAt = ? WHERE id = ?`,
+      [recoverPassCode, new Date(), id]
+    )
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
+async function updateUserPass({ recoveryPassCode, newPass }) {
+  let connection
+
+  try {
+    connection = await getPool()
+
+    // Comprobamos si existe algún usuario con ese código de recuperación.
+    const user = await getUserBy({ recoveryPassCode })
+
+    // Si no hay ningún usuario con ese código de recuperación lanzamos un error.
+    if (!user) throw new ValidationError({ message: 'Código de recuperación incorrecto', status: 404 })
+
+    // Actualizamos el usuario.
+    await connection.query(
+      `UPDATE users SET password = ?, recoveryPassCode = null, modifiedAt = ? WHERE id = ?`,
+      [newPass, new Date(), user.id]
     )
 
   } catch (error) {
@@ -103,4 +181,7 @@ module.exports = {
   getUserBy,
   getUser,
   createUser,
+  updateUserRegCode,
+  updateUserRecoverPass,
+  updateUserPass
 }

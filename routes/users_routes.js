@@ -20,4 +20,13 @@ router.post('/', users_controller.createUser)
 // POST /users/login
 router.post('/login', users_controller.loginUser)
 
+// GET /users/validate/:regCode
+router.get('/validate/:regCode', users_controller.validateUser)
+
+// POST /users/password/recover
+router.post('/password/recover', users_controller.sendRecoverPass)
+
+// PUT /users/password
+router.put('/password', users_controller.editUserPass)
+
 module.exports = router
