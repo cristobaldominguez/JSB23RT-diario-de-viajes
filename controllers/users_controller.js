@@ -9,8 +9,11 @@ const {
   getUser: getUserDB,
   createUser: createUserDB,
   updateUserRecoverPass,
-  updateUserPass
+  updateUserPass,
+  updateUserAvatar
 } = require('../db/queries/users_query.js')
+
+const { deletePhoto, savePhoto } = require('../services/photos.js')
 
 const randomDigits = require('../helpers/randomDigits.js')
 
@@ -186,6 +189,40 @@ async function editUserPass(req, res, next) {
   }
 }
 
+async function editUserAvatar(req, res, next) {
+  try {
+    // Lanzamos un error si falta el avatar. La propiedad files puede no existir en caso
+    // de que no recibamos ningún archivo. Usamos la interrogación para indicarle a JavaScript
+    // que dicha propiedad puede ser undefined para evitar que se detenga el server con un error.
+    if (!req.files?.avatar) {
+      throw new ValidationError({ message: 'Faltan campos', status: 400 })
+    }
+
+    // Obtenemos los datos del usuario para comprobar si ya tiene un avatar previo.
+    // const user = await getUserBy({ id: req.user.id })
+    const { user } = req
+    
+    // Si el usuario tiene un avatar previo lo eliminamos.
+    if (user.avatar) {
+      await deletePhoto(user.avatar)
+    }
+
+    // Guardamos el avatar en una carpeta del servidor y obtenemos el nombre con el que lo hemos
+    // guardado.
+    const avatar = await savePhoto({ img: req.files.avatar, width: 100})
+
+    const savedAvatar = await updateUserAvatar({ avatar, userId: req.user.id })
+    if (savedAvatar instanceof Error) throw savedAvatar
+
+    res.send({
+      status: 'ok',
+      message: 'Avatar actualizado',
+    })
+  } catch (err) {
+    next(err)
+  }
+}
+
 module.exports = {
   getUsers,
   getUser,
@@ -193,5 +230,6 @@ module.exports = {
   loginUser,
   validateUser,
   sendRecoverPass,
-  editUserPass
+  editUserPass,
+  editUserAvatar
 }

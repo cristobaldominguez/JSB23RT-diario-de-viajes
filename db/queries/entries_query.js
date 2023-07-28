@@ -29,6 +29,66 @@ async function createEntry({ title, place, description, userId }) {
   }
 }
 
+async function getEntryBy(obj) {
+  const query_str = Object.entries(obj).map(arr => `${arr[0]} = '${arr[1]}'`).join(' AND ')
+  let connection
+
+  try {
+    connection = await getPool()
+    const [ entries ] = await connection.query(
+      `SELECT * FROM entries WHERE ${query_str}`
+    )
+    return entries[0]
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
+async function getEntryWithPhotos({ id, userId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+    const [ entries ] = await connection.query(
+      `SELECT * FROM entries INNER JOIN entryPhotos ON entries.id = entryPhotos.entryId WHERE entries.id = ? AND entries.userId = ?`,
+      [id, userId]
+    )
+    return entries
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
+async function getEntryPhoto({ entryId, photoId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+    const [ photos ] = await connection.query(
+      `SELECT * FROM entryPhotos WHERE entryId = ? AND id = ?`,
+      [entryId, photoId]
+    )
+    return photos[0]
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
 async function getEntry({ id }) {
   let connection
 
@@ -77,10 +137,47 @@ async function deleteEntry({ id }) {
   }
 }
 
+async function deletePhoto({ photoId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+    const data = await connection.query(
+      `DELETE FROM entryPhotos WHERE id = ?`,
+      [ photoId ]
+    )
+    return data
+
+  } catch (error) {
+    
+  }
+}
+
+async function getPhotosFromEntry({ entryId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+    const [ entry ] = await connection.query(
+      `SELECT * FROM entryPhotos WHERE entryId = ?`,
+      [ entryId ]
+    )
+    return entry
+
+  } catch (error) {
+    
+  }
+}
+
 module.exports = {
   getEntries,
   createEntry,
+  getEntryBy,
   getEntry,
   editEntry,
-  deleteEntry
+  deleteEntry,
+  getEntryWithPhotos,
+  getEntryPhoto,
+  deletePhoto,
+  getPhotosFromEntry
 }

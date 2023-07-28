@@ -7,6 +7,7 @@ const init = async () => {
     connection = await getPool()
 
     console.log('Borrando tablas')
+    await connection.query('DROP TABLE IF EXISTS entryPhotos')
     await connection.query('DROP TABLE IF EXISTS entries')
     await connection.query('DROP TABLE IF EXISTS users')
 
@@ -40,6 +41,17 @@ const init = async () => {
         FOREIGN KEY (userId) REFERENCES users(id)
       );
     `)
+
+    console.log('Creando tabla entryPhotos')
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS entryPhotos (
+        id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        entryId INT UNSIGNED NOT NULL,
+        createdAt DATETIME NOT NULL,
+        FOREIGN KEY (entryId) REFERENCES entries(id)
+      )
+    `);
 
     console.log('Tablas creadas')
 

@@ -1,6 +1,9 @@
 const express = require('express')
+const fileUpload = require('express-fileupload')
 
 const { port } = require('./config')
+
+const { UPLOADS_DIR } = process.env
 
 const app = express()
 
@@ -11,15 +14,10 @@ const entries_routes = require('./routes/entries_routes.js')
 // middlewares
 const errorMiddleware = require('./middlewares/error_middleware.js')
 
-// endpoint (URL)
-// Metodo (verbo)
-// http://misitio.es/productos?limit=20&color=white
-
-// Create, Read, Update, Delete (CRUD)
-// POST, GET, PATCH/PUT, DELETE
-
 // Middlewares
 app.use(express.json())
+app.use(fileUpload())
+app.use(express.static(UPLOADS_DIR))
 
 app.get('/', (req, res) => {
   res.json({ msg: 'Aleluya!' })

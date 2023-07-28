@@ -15,10 +15,12 @@ async function authUser(req, res, next) {
 
     try {
       tokenInfo = jwt.verify(authorization, process.env.SECRET)
+      
 
     } catch {
       throw new AuthError({ message: 'Token inválido', status: 401 })
     }
+
 
     // Creamos una propiedad inventada por nosotros en el objeto request para añadir
     // los datos del usuario.

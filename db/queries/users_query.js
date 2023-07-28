@@ -176,6 +176,26 @@ async function updateUserPass({ recoveryPassCode, newPass }) {
   }
 }
 
+async function updateUserAvatar({ avatar, userId }) {
+  let connection
+
+  try {
+    connection = await getPool()
+
+    await connection.query(
+      `UPDATE users SET avatar = ?, modifiedAt = ? WHERE id = ?`,
+      [avatar, new Date(), userId]
+    )
+
+  } catch (error) {
+    console.log(error)
+    return error
+
+  } finally {
+    if (connection) connection.release()
+  }
+}
+
 module.exports = {
   getUsers,
   getUserBy,
@@ -183,5 +203,6 @@ module.exports = {
   createUser,
   updateUserRegCode,
   updateUserRecoverPass,
-  updateUserPass
+  updateUserPass,
+  updateUserAvatar
 }

@@ -29,4 +29,7 @@ router.post('/password/recover', users_controller.sendRecoverPass)
 // PUT /users/password
 router.put('/password', users_controller.editUserPass)
 
+// PUT /users/avatar
+router.put('/avatar', authUser, userExists, users_controller.editUserAvatar)
+
 module.exports = router
